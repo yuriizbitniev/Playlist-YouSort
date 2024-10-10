@@ -3,9 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>YouTube API Test</title>
 </head>
 <body>
-    
+    <h1>YouTube API - Работа с плейлистами</h1>
+    <button id="auth-button">Войти в YouTube</button>
+    <button id="create-playlist-button" disabled>Создать плейлист</button>
+
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script>
+        // Инициализация клиента Google API
+        function loadClient() {
+            gapi.client.setApiKey("AIzaSyDEtjKGo-foGtYWL2nvmzI0dZ_wgJVNB8I");
+            return gapi.client.load("https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest")
+                .then(function() {
+                    console.log("GAPI client loaded for API");
+                }, function(err) {
+                    console.error("Error loading GAPI client for API", err);
+                });
+        }
+
+        // Аутентификация с использованием OAuth 2.0
+        function authenticate() {
+            return gapi.auth2.getAuthInstance()
+                .signIn({scope: "https://www.googleapis.com/auth/youtube.force-ssl"})
+                .then(function() {
+                    console.log("Sign-in successful");
+                    document.getElementById('create-playlist-button').disabled = false;
+                }, function(err) {
+                    console.error("Error signing in", err);
+                });
+        }
+
+        // Функция создания плейлиста
+        function createPlaylist() {
+            const request = gapi.client.youtube.playlists.insert({
+                part: "snippet,status",
+                resource: {
+                    snippet: {
+                        title: "Новый плейлист",
+                        description: "Описание плейлиста"
+                    },
+                    status: {
+                        privacyStatus: "private"  // 'public', 'private', 'unlisted'
+                    }
+                }
+            });
+            request.execute(function(response) {
+                console.log("Плейлист создан:", response);
+            });
+        }
+
+        // Загружаем API и инициализируем клиент
+        gapi.load("client:auth2", function() {
+            gapi.auth2.init({client_id: "887427343919-s2ps1l74fgosvfdqb07b5eggkvg8pd94.apps.googleusercontent.com"});
+        });
+
+        document.getElementById('auth-button').addEventListener('click', authenticate);
+        document.getElementById('create-playlist-button').addEventListener('click', createPlaylist);
+    </script>
 </body>
 </html>
