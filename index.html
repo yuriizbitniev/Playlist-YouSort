@@ -55,12 +55,22 @@
         }
 
         // Загружаем API и инициализируем клиент
-        gapi.load("client:auth2", function() {
-            gapi.auth2.init({client_id: "887427343919-s2ps1l74fgosvfdqb07b5eggkvg8pd94.apps.googleusercontent.com"});
-        });
+        function handleClientLoad() {
+            gapi.load("client:auth2", function() {
+                gapi.auth2.init({
+                    client_id: "887427343919-s2ps1l74fgosvfdqb07b5eggkvg8pd94.apps.googleusercontent.com"
+                }).then(function () {
+                    loadClient(); // Загружаем API после инициализации
+                });
+            });
+        }
 
+        // Вызовы функций после загрузки страницы
         document.getElementById('auth-button').addEventListener('click', authenticate);
         document.getElementById('create-playlist-button').addEventListener('click', createPlaylist);
+
+        // Вызываем функцию загрузки клиента при загрузке страницы
+        window.onload = handleClientLoad;
     </script>
 </body>
 </html>
