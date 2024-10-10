@@ -58,8 +58,7 @@
         function handleClientLoad() {
             gapi.load("client:auth2", function() {
                 gapi.auth2.init({
-                    client_id: "887427343919-s2ps1l74fgosvfdqb07b5eggkvg8pd94.apps.googleusercontent.com",
-                    cookiepolicy: "single_host_origin" // Добавлено
+                    client_id: "887427343919-s2ps1l74fgosvfdqb07b5eggkvg8pd94.apps.googleusercontent.com"
                 }).then(function () {
                     loadClient(); // Загружаем API после инициализации
                 });
