@@ -3,34 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube API Test</title>
+    <title>YouTube API - Google Identity Services</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
     <h1>YouTube API - Работа с плейлистами</h1>
     <button id="auth-button">Войти в YouTube</button>
     <button id="create-playlist-button" disabled>Создать плейлист</button>
-    <button id="get-playlist-button">Получить пиздюлей</button>
+    
+    <h2>Мои плейлисты</h2>
+    <ul id="playlist-list"></ul>
 
-    <script src="https://apis.google.com/js/api.js"></script>
     <script>
-        function loadClient() {
-            gapi.client.setApiKey("AIzaSyDEtjKGo-foGtYWL2nvmzI0dZ_wgJVNB8I");
-            return gapi.client.load("https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest")
-                .then(function() {
-                    console.log("GAPI client loaded for API");
-                }, function(err) {
-                    console.error("Error loading GAPI client for API", err);
-                });
-        }
+        const CLIENT_ID = "887427343919-s2ps1l74fgosvfdqb07b5eggkvg8pd94.apps.googleusercontent.com";
+        const API_KEY = "AIzaSyDEtjKGo-foGtYWL2nvmzI0dZ_wgJVNB8I";
+        const SCOPES = "https://www.googleapis.com/auth/youtube.force-ssl";
 
-        function authenticate() {
-            return gapi.auth2.getAuthInstance()
-                .signIn({scope: "https://www.googleapis.com/auth/youtube.force-ssl"})
-                .then(function() {
-                    console.log("Sign-in successful");
+        function handleCredentialResponse(response) {
+            const id_token = response.credential;
+            console.log("ID Token:", id_token);
+
+            // Устанавливаем API ключ
+            gapi.client.setApiKey(API_KEY);
+
+            // Загружаем YouTube API
+            gapi.client.load("https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest")
+                .then(() => {
+                    console.log("GAPI client loaded for API");
+                    getPlaylists(); // Получаем плейлисты после загрузки API
                     document.getElementById('create-playlist-button').disabled = false;
-                }, function(err) {
-                    console.error("Error signing in", err);
+                }, (err) => {
+                    console.error("Error loading GAPI client for API", err);
                 });
         }
 
@@ -49,45 +52,55 @@
             });
             request.execute(function(response) {
                 console.log("Плейлист создан:", response);
+                getPlaylists(); // Обновляем список плейлистов после создания нового
             });
         }
 
-        gapi.load("client:auth2", function() {
-            gapi.auth2.init({client_id: "887427343919-s2ps1l74fgosvfdqb07b5eggkvg8pd94.apps.googleusercontent.com"})
-                .then(loadClient);
-        });
+        function getPlaylists() {
+            const request = gapi.client.youtube.playlists.list({
+                part: 'snippet',
+                mine: true
+            });
+            request.execute(function(response) {
+                console.log("Playlists:", response);
+                const playlists = response.items;
+                const playlistList = document.getElementById('playlist-list');
+                playlistList.innerHTML = ''; // Очищаем предыдущие результаты
 
-        document.getElementById('auth-button').addEventListener('click', authenticate);
+                if (playlists.length) {
+                    playlists.forEach(function(playlist) {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = playlist.snippet.title; // Название плейлиста
+                        playlistList.appendChild(listItem);
+                    });
+                } else {
+                    playlistList.innerHTML = '<li>Плейлисты не найдены.</li>';
+                }
+            });
+        }
+
+        function initGoogleAuth() {
+            google.accounts.id.initialize({
+                client_id: CLIENT_ID,
+                callback: handleCredentialResponse
+            });
+
+            google.accounts.id.renderButton(
+                document.getElementById("auth-button"),
+                { theme: "outline", size: "large" }  // Настройка кнопки
+            );
+
+            google.accounts.id.prompt(); // Запрос на аутентификацию
+        }
+
+        // Загружаем API и инициализируем клиент
+        function gapiLoad() {
+            gapi.load("client", initGoogleAuth);
+        }
+
+        window.onload = gapiLoad;
+
         document.getElementById('create-playlist-button').addEventListener('click', createPlaylist);
-        document.getElementById('get-playlist-button').addEventListener('click', getPlaylists);
-// Функция получения списка плейлистов
-function getPlaylists() {
-    const request = gapi.client.youtube.playlists.list({
-        part: 'snippet',
-        mine: true
-    });
-    request.execute(function(response) {
-        console.log("Playlists:", response);
-        const playlists = response.items;
-        const playlistList = document.getElementById('playlist-list');
-        playlistList.innerHTML = ''; // Очищаем предыдущие результаты
-
-        if (playlists.length) {
-            playlists.forEach(function(playlist) {
-                const listItem = document.createElement('li');
-                listItem.textContent = playlist.snippet.title; // Название плейлиста
-                playlistList.appendChild(listItem);
-            });
-        } else {
-            playlistList.innerHTML = '<li>Плейлисты не найдены.</li>';
-        }
-    });
-}
-        
     </script>
-
-
-
-
 </body>
 </html>
