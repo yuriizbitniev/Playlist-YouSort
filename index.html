@@ -20,9 +20,15 @@
         const API_KEY = "AIzaSyDEtjKGo-foGtYWL2nvmzI0dZ_wgJVNB8I";
         const SCOPES = "https://www.googleapis.com/auth/youtube.force-ssl";
 
+        let accessToken = '';
+
         function handleCredentialResponse(response) {
             const id_token = response.credential;
             console.log("ID Token:", id_token);
+            
+            // Получаем access token
+            const payload = jwt_decode(id_token); // Используем библиотеку jwt-decode
+            accessToken = payload.access_token;
 
             // Устанавливаем API ключ
             gapi.client.setApiKey(API_KEY);
@@ -48,6 +54,9 @@
                     status: {
                         privacyStatus: "private"  // 'public', 'private', 'unlisted'
                     }
+                },
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken // Используем токен доступа
                 }
             });
             request.execute(function(response) {
@@ -59,7 +68,10 @@
         function getPlaylists() {
             const request = gapi.client.youtube.playlists.list({
                 part: 'snippet',
-                mine: true
+                mine: true,
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken // Используем токен доступа
+                }
             });
             request.execute(function(response) {
                 console.log("Playlists:", response);
