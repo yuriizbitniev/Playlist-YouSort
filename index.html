@@ -58,6 +58,35 @@
 
         document.getElementById('auth-button').addEventListener('click', authenticate);
         document.getElementById('create-playlist-button').addEventListener('click', createPlaylist);
+        document.getElementById('get-playlist-button').addEventListener('click', getPlaylists);
+// Функция получения списка плейлистов
+function getPlaylists() {
+    const request = gapi.client.youtube.playlists.list({
+        part: 'snippet',
+        mine: true
+    });
+    request.execute(function(response) {
+        console.log("Playlists:", response);
+        const playlists = response.items;
+        const playlistList = document.getElementById('playlist-list');
+        playlistList.innerHTML = ''; // Очищаем предыдущие результаты
+
+        if (playlists.length) {
+            playlists.forEach(function(playlist) {
+                const listItem = document.createElement('li');
+                listItem.textContent = playlist.snippet.title; // Название плейлиста
+                playlistList.appendChild(listItem);
+            });
+        } else {
+            playlistList.innerHTML = '<li>Плейлисты не найдены.</li>';
+        }
+    });
+}
+        
     </script>
+
+
+
+
 </body>
 </html>
