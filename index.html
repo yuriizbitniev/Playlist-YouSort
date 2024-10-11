@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube API - Google Identity Services</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script async src="https://apis.google.com/js/api.js"></script>
 </head>
 <body>
     <h1>YouTube API - Работа с плейлистами</h1>
@@ -27,14 +28,13 @@
             gapi.client.setApiKey(API_KEY);
 
             // Загружаем YouTube API
-            gapi.client.load("https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest")
-                .then(() => {
-                    console.log("GAPI client loaded for API");
-                    getPlaylists(); // Получаем плейлисты после загрузки API
-                    document.getElementById('create-playlist-button').disabled = false;
-                }, (err) => {
-                    console.error("Error loading GAPI client for API", err);
-                });
+            gapi.client.load("youtube", "v3").then(() => {
+                console.log("GAPI client loaded for API");
+                getPlaylists(); // Получаем плейлисты после загрузки API
+                document.getElementById('create-playlist-button').disabled = false;
+            }, (err) => {
+                console.error("Error loading GAPI client for API", err);
+            });
         }
 
         function createPlaylist() {
@@ -98,7 +98,9 @@
             gapi.load("client", initGoogleAuth);
         }
 
-        window.onload = gapiLoad;
+        window.onload = function() {
+            gapiLoad(); // Вызываем функцию загрузки gapi при загрузке страницы
+        };
 
         document.getElementById('create-playlist-button').addEventListener('click', createPlaylist);
     </script>
